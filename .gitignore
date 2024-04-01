@@ -1,0 +1,15 @@
+# VSCode
+__pycache__/
+.vscode/
+training.code-workspace
+
+# Project
+datasets/
+output/
+input/
+reminis.ini
+vocab.txt
+
+# Environment
+cuda/
+venv/
