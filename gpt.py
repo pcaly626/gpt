@@ -128,6 +128,11 @@ class GPTLanguageModel(nn.Module):
             elif isinstance(module, nn.Embedding):
                 torch.nn.init.normal_(module.weight, mean=0.0, std=0.02)
     
+    def stop_generation(self, index, max_new_tokens):
+        if index.size()[1] >= max_new_tokens and self.decode(index[0][-1:])[0] in ['.', '!','?','".',"'."]:
+            return False
+        return True
+
     def get_device(self):
         return "cuda" if torch.cuda.is_available() else 'cpu'
 
@@ -159,9 +164,9 @@ class GPTLanguageModel(nn.Module):
 
     def generate(self, index, max_new_tokens, block_size):
         # index is (B, T) array of indices in the current context
-        for _ in range(max_new_tokens):
+        while self.stop_generation(index, max_new_tokens):
             # crop index to the last block_size tokens
-            index_cond = index[: block_size:]
+            index_cond = index[:, -block_size:]
             # get the predictions
             logits, loss = self.forward(index_cond)
             logits = logits[:, -1, :] # becomes (B, C)
