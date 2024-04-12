@@ -10,13 +10,27 @@ def xz_files_in_dir(directory, postfix='.xz'):
             files.append(filename)
     return files
 
+
+def encode(text):
+    encoding = []
+    for c in text.split(' '):
+        item = c
+        if "\x00" in c:
+            continue
+        if "\n" in c:
+            item = c.split('\n')[0]
+        encoding.append(item)
+    return set(encoding)
+
+
 folder_path = 'C:\\Users\\pclayadmin\\Desktop\\Projects\\LLM\\training\\datasets'
 prefix_output_path = 'D:\\Projects\\LLM'
-output_file_train = os.path.join(prefix_output_path, 'output_literature_train.txt')
-output_file_val = os.path.join(prefix_output_path, 'output_literature_val.txt')
-vocab_file = 'C:\\Users\\pclayadmin\\Desktop\\Projects\\LLM\\training\\vocab.txt'
+output_file_train = os.path.join(prefix_output_path, 'output_words_train.txt')
+output_file_val = os.path.join(prefix_output_path, 'output_words_val.txt')
+vocab_file = 'C:\\Users\\pclayadmin\\Desktop\\Projects\\LLM\\training\\input\\word_vocab.txt'
 
-files = xz_files_in_dir(folder_path, postfix='.txt')
+
+files = xz_files_in_dir(folder_path)
 total_files = len(files)
 
 split_index = int(total_files * 0.9)
@@ -31,8 +45,10 @@ with open(output_file_train, 'w', encoding='utf-8') as outfile:
         with lzma.open(file_path, 'rt', encoding='utf-8') as infile:
             text = infile.read()
             outfile.write(text)
+            words = encode(text)
             characters = set(text)
             vocab.update(characters)
+            vocab.update(words)
 
 # Process the validation files
 with open(output_file_val, 'w', encoding='utf-8') as outfile:
@@ -41,8 +57,10 @@ with open(output_file_val, 'w', encoding='utf-8') as outfile:
         with lzma.open(file_path, 'rt', encoding='utf-8') as infile:
             text = infile.read()
             outfile.write(text)
+            words = encode(text)
             characters = set(text)
             vocab.update(characters)
+            vocab.update(words)
             
 # Write the vocab
 with open(vocab_file, 'w', encoding='utf-8') as vfile:
